@@ -47,10 +47,16 @@ async def lifespan(app: FastAPI):
     # Seed data
     db = SessionLocal()
     try:
-        seed_database(db)
-        log.info("Seed data loaded")
+        # Check if we already have data; if not, seed it.
+        # This is vital for Render Free Tier which resets every time it sleeps.
+        if db.query(SWSRecord).count() == 0:
+            seed_database(db)
+            log.info("Fresh seed data loaded for demo")
+        else:
+            log.info("Database already contains data, skipping seed")
     finally:
         db.close()
+
 
     # Initialize polling snapshots
     initialize_snapshots()
